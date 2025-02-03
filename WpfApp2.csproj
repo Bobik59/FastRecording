@@ -8,4 +8,11 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="ConsoleApp3\**" />
+    <EmbeddedResource Remove="ConsoleApp3\**" />
+    <None Remove="ConsoleApp3\**" />
+    <Page Remove="ConsoleApp3\**" />
+  </ItemGroup>
+
 </Project>
