@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFramework>net8.0-windows</TargetFramework>
+	  <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
@@ -13,6 +13,14 @@
     <EmbeddedResource Remove="ConsoleApp3\**" />
     <None Remove="ConsoleApp3\**" />
     <Page Remove="ConsoleApp3\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="ConsoleApp3\ConsoleApp3.csproj" />
   </ItemGroup>
 
 </Project>

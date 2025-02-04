@@ -11,7 +11,6 @@ namespace ConsoleApp3.Model
         public int Id { get; set; }
         public int UserId { get; set; }
         public User User { get; set; }
-        public string FIO { get; set; }
-
+        public string? FIO { get; set; }
     }
 }
