@@ -16,6 +16,11 @@ namespace ConsoleApp3.Model
         public DbSet<Bookings> Bookings { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
 
+        public BookingContext()
+        {
+            Database.EnsureCreated();
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
