@@ -25,7 +25,7 @@ namespace ConsoleApp3.Model
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=BookingDB;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=QuickBooks;Trusted_Connection=True;");
             }
         }
 

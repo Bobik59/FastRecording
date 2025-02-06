@@ -10,17 +10,22 @@
 
   <ItemGroup>
     <Compile Remove="ConsoleApp3\**" />
+    <Compile Remove="ServerC\**" />
     <EmbeddedResource Remove="ConsoleApp3\**" />
+    <EmbeddedResource Remove="ServerC\**" />
     <None Remove="ConsoleApp3\**" />
+    <None Remove="ServerC\**" />
     <Page Remove="ConsoleApp3\**" />
+    <Page Remove="ServerC\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="ConsoleApp3\ConsoleApp3.csproj" />
+    <ProjectReference Include="ServerC\ServerC.csproj" />
   </ItemGroup>
 
 </Project>

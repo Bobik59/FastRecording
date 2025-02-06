@@ -1,0 +1,53 @@
+﻿<Window x:Class="WpfApp2.ClientWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Запись к мастеру" Height="450" Width="600">
+    <Window.Resources>
+        <!-- Стиль для ListBoxItem -->
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="LightGray"/>
+            <Setter Property="BorderBrush" Value="DarkGray"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Стиль для текста мастера -->
+        <Style TargetType="TextBlock" x:Key="MasterTextStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Список мастеров с DataTemplate для отображения ФИО и описания -->
+        <ListBox x:Name="MastersListBox" Width="300" Height="300"
+                 SelectionChanged="OnMasterSelected" ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="{Binding FIO}" Style="{StaticResource MasterTextStyle}"/>
+                        <TextBlock Text="{Binding Description}" Foreground="Gray" FontSize="14"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="310,10,10,10">
+            <Button Content="Изменить свои данные" Margin="0,0,0,20" Width="150"/>
+
+            <TextBlock Text="Дата" Margin="0,10,0,0"/>
+            <DatePicker x:Name="DatePicker" Margin="0,0,0,10"/>
+
+            <TextBox x:Name="TimeTextBox" Text="" Margin="0,0,0,10" InputScope="Time"/>
+
+            <TextBlock Text="Услуга" Margin="0,10,0,0"/>
+            <TextBox x:Name="ServiceTextBox" Text="" Margin="0,0,0,20"/>
+
+            <Button Content="Оставить заявку" Click="OnSubmitBooking" Width="150"/>
+        </StackPanel>
+    </Grid>
+</Window>
