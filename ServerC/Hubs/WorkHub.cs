@@ -88,12 +88,21 @@ namespace ServerC.Hubs
             return master;
         }
 
-        public async Task<string> ConfirmBooking(ScheduleRequest request, int price)
+        public async Task<string> ConfirmBooking(ScheduleRequest request, int price, int masterId)
         {
+            var client = await _context.Clients
+                .FirstOrDefaultAsync(c => c.FIO == request.ClientFIO);
+
+            if (client == null)
+            {
+                return "Клиент не найден.";
+            }
+
             var schedule = await _context.Schedules
                 .Include(s => s.Client)
                 .Include(s => s.Master)
-                .FirstOrDefaultAsync(s => s.Client.FIO == request.ClientFIO &&
+                .FirstOrDefaultAsync(s => s.Master.Id == masterId &&
+                                          s.Client.Id == client.Id &&
                                           s.Service == request.Service &&
                                           s.BookingTime == request.BookingTime);
 
@@ -120,22 +129,41 @@ namespace ServerC.Hubs
             return "Заявка не найдена.";
         }
 
-        public async Task<string> RejectSchedule(ScheduleRequest request)
+        public async Task<string> RejectSchedule(ScheduleRequest request, int masterId)
         {
-            var schedule = await _context.Schedules
-                .FirstOrDefaultAsync(s => s.Client.FIO == request.ClientFIO &&
-                                          s.Service == request.Service &&
-                                          s.BookingTime == request.BookingTime);
-
-            if (schedule != null)
+            try
             {
+                var query = _context.Schedules
+                    .Include(s => s.Client)
+                    .Include(s => s.Master)
+                    .Where(s => s.Master.Id == masterId &&
+                                s.Service == request.Service &&
+                                s.BookingTime == request.BookingTime);
+
+                if (!string.IsNullOrWhiteSpace(request.ClientFIO))
+                {
+                    query = query.Where(s => s.Client.FIO == request.ClientFIO);
+                }
+
+                var schedule = await query.FirstOrDefaultAsync();
+
+                if (schedule == null)
+                {
+                    return "Заявка не найдена.";
+                }
+
                 _context.Schedules.Remove(schedule);
                 await _context.SaveChangesAsync();
+
                 return "Заявка отклонена.";
             }
-
-            return "Заявка не найдена.";
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при отклонении заявки: {ex.Message}\n{ex.StackTrace}");
+                return $"Ошибка на сервере: {ex.Message}";
+            }
         }
+
 
         public async Task<Tuple<string, int?, int?>> AuthenticateOrRegisterUser(string login, string password, string role)
         {
