@@ -22,6 +22,24 @@ namespace ServerC.Hubs
                 .Select(m => new MasterDto { Id = m.Id, FIO = m.FIO, Description = m.Description })
                 .ToListAsync();
         }
+        public async Task<List<BookingDto>> GetClientBookings(int clientId)
+        {
+            var bookings = await _context.Bookings
+                .Include(b => b.Client)
+                .Include(b => b.Master)
+                .Where(b => b.Client.Id == clientId)
+                .Select(b => new BookingDto
+                {
+                    Id = b.Id,
+                    ClientId = b.Client.Id,
+                    BookingTime = b.BookingTime,
+                    Service = b.Service,
+                    Price = b.Price
+                })
+                .ToListAsync();
+
+            return bookings;
+        }
 
         /// <summary>
         /// Создает заявку (Schedule) для клиента

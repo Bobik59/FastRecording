@@ -48,6 +48,11 @@
             <TextBox x:Name="ServiceTextBox" Text="" Margin="0,0,0,20"/>
 
             <Button Content="Оставить заявку" Click="OnSubmitBooking" Width="150"/>
+            <!-- Новая кнопка для просмотра расписания -->
+            <Button Content="Расписание" Click="OnScheduleClick" Width="150" Margin="0,10,0,0"/>
+
+            <!-- ListBox для отображения расписания клиента -->
+            <ListBox x:Name="ClientScheduleListBox" Visibility="Collapsed" Margin="0,10,0,0" Height="200"/>
         </StackPanel>
     </Grid>
 </Window>

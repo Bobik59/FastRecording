@@ -28,6 +28,8 @@ namespace WpfApp2
 
             LoadMasters();
         }
+
+
         private async void LoadMasters()
         {
             try
@@ -92,6 +94,34 @@ namespace WpfApp2
             }
         }
 
+        private async void OnScheduleClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_connection.State == HubConnectionState.Disconnected)
+                {
+                    await _connection.StartAsync();
+                }
+
+                // Вызываем серверный метод для получения расписания клиента
+                List<BookingDto> clientBookings = await _connection.InvokeAsync<List<BookingDto>>("GetClientBookings", _clientId);
+
+                if (clientBookings != null && clientBookings.Count > 0)
+                {
+                    ClientScheduleListBox.ItemsSource = clientBookings;
+                    ClientScheduleListBox.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    MessageBox.Show("Ваше расписание пока отсутствует.");
+                    ClientScheduleListBox.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки расписания: {ex.Message}");
+            }
+        }
     }
 
     public class MasterDto

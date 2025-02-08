@@ -7,6 +7,16 @@ using System.Threading.Tasks;
 
 namespace ServerC.Hubs
 {
+
+    public class BookingDto
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public DateTime BookingTime { get; set; }
+        public string Service { get; set; }
+        public int Price { get; set; }
+    }
+
     public class MasterUpdateRequest
     {
         public int UserId { get; set; }
@@ -17,10 +27,11 @@ namespace ServerC.Hubs
 
     public class ScheduleRequest
     {
-        public string ClientFIO { get; set; }
+        public int ClientId { get; set; }
         public string Service { get; set; }
         public DateTime BookingTime { get; set; }
     }
+
 
     public class WorkHub : Hub
     {
@@ -63,7 +74,7 @@ namespace ServerC.Hubs
                 .Where(s => s.Master.Id == masterId)
                 .Select(s => new ScheduleRequest
                 {
-                    ClientFIO = s.Client.FIO ?? "Не указано",
+                    ClientId = s.Client.Id,
                     Service = s.Service,
                     BookingTime = s.BookingTime
                 })
@@ -90,14 +101,16 @@ namespace ServerC.Hubs
 
         public async Task<string> ConfirmBooking(ScheduleRequest request, int price, int masterId)
         {
+            // Получаем клиента по идентификатору, указанному в запросе
             var client = await _context.Clients
-                .FirstOrDefaultAsync(c => c.FIO == request.ClientFIO);
+                .FirstOrDefaultAsync(c => c.Id == request.ClientId);
 
             if (client == null)
             {
                 return "Клиент не найден.";
             }
 
+            // Ищем соответствующую заявку в таблице Schedules с учетом переданного masterId
             var schedule = await _context.Schedules
                 .Include(s => s.Client)
                 .Include(s => s.Master)
@@ -106,55 +119,64 @@ namespace ServerC.Hubs
                                           s.Service == request.Service &&
                                           s.BookingTime == request.BookingTime);
 
-            if (schedule != null)
+            if (schedule == null)
             {
-                var newBooking = new Bookings
-                {
-                    Client = schedule.Client,
-                    Master = schedule.Master,
-                    BookingTime = schedule.BookingTime,
-                    Service = schedule.Service,
-                    Price = price
-                };
-
-                _context.Bookings.Add(newBooking);
-                _context.Schedules.Remove(schedule);
-
-                await _context.SaveChangesAsync();
-                await Clients.All.SendAsync("BookingConfirmed", newBooking);
-
-                return "Заявка подтверждена и добавлена в систему.";
+                return "Заявка не найдена.";
             }
 
-            return "Заявка не найдена.";
+            // Создаем новое бронирование на основе данных из найденной заявки
+            var newBooking = new Bookings
+            {
+                Client = schedule.Client,
+                Master = schedule.Master,
+                BookingTime = schedule.BookingTime,
+                Service = schedule.Service,
+                Price = price
+            };
+
+            // Добавляем запись бронирования в таблицу Bookings
+            _context.Bookings.Add(newBooking);
+            // Удаляем заявку из таблицы Schedules
+            _context.Schedules.Remove(schedule);
+
+            // Сохраняем изменения в базе данных
+            await _context.SaveChangesAsync();
+
+
+
+            return "Заявка подтверждена и добавлена в систему.";
         }
 
         public async Task<string> RejectSchedule(ScheduleRequest request, int masterId)
         {
             try
             {
-                var query = _context.Schedules
-                    .Include(s => s.Client)
-                    .Include(s => s.Master)
-                    .Where(s => s.Master.Id == masterId &&
+                // Логируем информацию о заявке, которую собираемся удалить
+                Console.WriteLine($"Удаление заявки: ClientId={request.ClientId}, MasterId={masterId}, Service={request.Service}, BookingTime={request.BookingTime}");
+
+                // Ищем запись, удовлетворяющую заданным критериям
+                var schedule = await _context.Schedules
+                    .Where(s => s.Client.Id == request.ClientId &&
+                                s.Master.Id == masterId &&
+                                !s.IsAccepted &&
                                 s.Service == request.Service &&
-                                s.BookingTime == request.BookingTime);
+                                s.BookingTime == request.BookingTime)
+                    .FirstOrDefaultAsync();
 
-                if (!string.IsNullOrWhiteSpace(request.ClientFIO))
-                {
-                    query = query.Where(s => s.Client.FIO == request.ClientFIO);
-                }
-
-                var schedule = await query.FirstOrDefaultAsync();
-
+                // Если запись не найдена, сообщаем об этом
                 if (schedule == null)
                 {
+                    Console.WriteLine("Заявка не найдена.");
                     return "Заявка не найдена.";
                 }
 
+                // Удаляем найденную запись
                 _context.Schedules.Remove(schedule);
+
+                // Сохраняем изменения в базе данных
                 await _context.SaveChangesAsync();
 
+                Console.WriteLine("Заявка успешно удалена.");
                 return "Заявка отклонена.";
             }
             catch (Exception ex)
@@ -162,6 +184,25 @@ namespace ServerC.Hubs
                 Console.WriteLine($"Ошибка при отклонении заявки: {ex.Message}\n{ex.StackTrace}");
                 return $"Ошибка на сервере: {ex.Message}";
             }
+        }
+
+        public async Task<List<BookingDto>> GetMasterBookings(int masterId)
+        {
+            var bookings = await _context.Bookings
+                .Include(b => b.Client)
+                .Include(b => b.Master)
+                .Where(b => b.Master.Id == masterId)
+                .Select(b => new BookingDto
+                {
+                    Id = b.Id,
+                    ClientId = b.Client.Id,
+                    BookingTime = b.BookingTime,
+                    Service = b.Service,
+                    Price = b.Price
+                })
+                .ToListAsync();
+
+            return bookings;
         }
 
 

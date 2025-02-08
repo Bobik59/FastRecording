@@ -20,6 +20,21 @@ namespace WpfApp2
     /// <summary>
     /// Логика взаимодействия для MasterWindow.xaml
     /// </summary>
+    public class BookingDto
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public DateTime BookingTime { get; set; }
+        public string Service { get; set; }
+        public int Price { get; set; }
+
+        // Переопределяем ToString для удобного отображения в ListBox
+        public override string ToString()
+        {
+            return $"{Service} в {BookingTime.ToShortTimeString()}, Цена: {Price}";
+        }
+    }
+
 
     public partial class MasterWindow : Window
     {
@@ -132,7 +147,7 @@ namespace WpfApp2
             {
                 _currentRequest = (ScheduleRequest)RequestsListBox.SelectedItem;
 
-                ClientNameText.Text = _currentRequest.ClientFIO;
+                ClientNameText.Text = _currentRequest.ClientId.ToString();
                 ServiceText.Text = _currentRequest.Service;
                 BookingTimeText.Text = _currentRequest.BookingTime.ToString();
 
@@ -148,16 +163,20 @@ namespace WpfApp2
                 {
                     try
                     {
+                        // Если SignalR-соединение отключено, запускаем его
                         if (_connection.State == HubConnectionState.Disconnected)
                         {
                             await _connection.StartAsync();
                         }
 
-                        var result = await _connection.InvokeAsync<string>("ConfirmBooking", _currentRequest, price);
+                        // Передаём _currentRequest, цену и masterId в метод ConfirmBooking
+                        // Обратите внимание, что masterId должен быть доступен в данном контексте (например, храниться в переменной или извлекаться из _currentRequest)
+                        var result = await _connection.InvokeAsync<string>("ConfirmBooking", _currentRequest, price, _masterId);
                         MessageBox.Show(result);
 
-                        ApprovalPanel.Visibility = Visibility.Collapsed; // Скрываем панель после подтверждения
-                        RequestsPanel.Visibility = Visibility.Collapsed; // Скрываем заявки
+                        // Скрываем панели после подтверждения
+                        ApprovalPanel.Visibility = Visibility.Collapsed;
+                        RequestsPanel.Visibility = Visibility.Collapsed;
                     }
                     catch (Exception ex)
                     {
@@ -168,6 +187,35 @@ namespace WpfApp2
                 {
                     MessageBox.Show("Введите корректную цену.");
                 }
+            }
+        }
+
+        private async void ScheduleButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_connection.State == HubConnectionState.Disconnected)
+                {
+                    await _connection.StartAsync();
+                }
+
+                // Вызываем серверный метод для получения расписания мастера
+                var bookings = await _connection.InvokeAsync<List<BookingDto>>("GetMasterBookings", _masterId);
+
+                if (bookings != null && bookings.Count > 0)
+                {
+                    SchedulePanel.Visibility = Visibility.Visible;
+                    ScheduleListBox.ItemsSource = bookings;
+                }
+                else
+                {
+                    MessageBox.Show("Ваше расписание пока отсутствует.");
+                    SchedulePanel.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки расписания: {ex.Message}");
             }
         }
 
@@ -182,11 +230,11 @@ namespace WpfApp2
                         await _connection.StartAsync();
                     }
 
-                    var result = await _connection.InvokeAsync<string>("RejectSchedule", _currentRequest);
+                    var result = await _connection.InvokeAsync<string>("RejectSchedule", _currentRequest, _masterId);
                     MessageBox.Show(result);
 
-                    ApprovalPanel.Visibility = Visibility.Collapsed; // Скрываем панель после отклонения
-                    RequestsPanel.Visibility = Visibility.Collapsed; // Скрываем заявки
+                    ApprovalPanel.Visibility = Visibility.Collapsed;
+                    RequestsPanel.Visibility = Visibility.Collapsed;
                 }
                 catch (Exception ex)
                 {
@@ -198,7 +246,7 @@ namespace WpfApp2
 
     public class ScheduleRequest
     {
-        public string ClientFIO { get; set; }
+        public int ClientId { get; set; }
         public string Service { get; set; }
         public DateTime BookingTime { get; set; }
     }
