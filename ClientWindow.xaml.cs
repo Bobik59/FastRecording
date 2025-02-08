@@ -35,10 +35,9 @@ namespace WpfApp2
             try
             {
                 await _connection.StartAsync();
-                List<MasterDto> masters = await _connection.InvokeAsync<List<MasterDto>>("GetMasters");
-
+                var masters = await _connection.InvokeAsync<List<MasterDto>>("GetMasters");
                 MastersListBox.ItemsSource = masters;
-                MastersListBox.DisplayMemberPath = "FIO"; // Отображаем ФИО мастера
+                MastersListBox.DisplayMemberPath = "FIO";
             }
             catch (Exception ex)
             {
@@ -62,7 +61,6 @@ namespace WpfApp2
                 return;
             }
 
-            // Проверка на корректный формат времени (HH:mm)
             if (!DateTime.TryParseExact(
                 $"{DatePicker.SelectedDate?.ToString("yyyy-MM-dd")} {TimeTextBox.Text}",
                 "yyyy-MM-dd HH:mm",
@@ -74,7 +72,7 @@ namespace WpfApp2
                 return;
             }
 
-            string service = ServiceTextBox.Text;
+            string service = ServiceTextBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(service))
             {
                 MessageBox.Show("Введите услугу.");
@@ -103,24 +101,29 @@ namespace WpfApp2
                     await _connection.StartAsync();
                 }
 
-                // Вызываем серверный метод для получения расписания клиента
-                List<BookingDto> clientBookings = await _connection.InvokeAsync<List<BookingDto>>("GetClientBookings", _clientId);
+                var clientBookings = await _connection.InvokeAsync<List<BookingDto>>("GetClientBookings", _clientId);
 
                 if (clientBookings != null && clientBookings.Count > 0)
                 {
                     ClientScheduleListBox.ItemsSource = clientBookings;
-                    ClientScheduleListBox.Visibility = Visibility.Visible;
+                    BookingPanel.Visibility = Visibility.Collapsed;
+                    SchedulePanel.Visibility = Visibility.Visible;
                 }
                 else
                 {
                     MessageBox.Show("Ваше расписание пока отсутствует.");
-                    ClientScheduleListBox.Visibility = Visibility.Collapsed;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка загрузки расписания: {ex.Message}");
             }
+        }
+
+        private void OnBackClick(object sender, RoutedEventArgs e)
+        {
+            SchedulePanel.Visibility = Visibility.Collapsed;
+            BookingPanel.Visibility = Visibility.Visible;
         }
     }
 

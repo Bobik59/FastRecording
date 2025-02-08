@@ -1,63 +1,148 @@
 ﻿<Window x:Class="WpfApp2.MasterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Окно мастера" Height="500" Width="800">
+        Title="Окно мастера" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#f0f0f0">
+    <Window.Resources>
+        <!-- Эффект тени для панелей -->
+        <DropShadowEffect x:Key="DropShadowEffect" Color="Black" Direction="320" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
+
+        <!-- Стилизация кнопок -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                    CornerRadius="5" 
+                    SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1976D2"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1565C0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
-        <!-- Левая панель -->
-        <Grid Background="White" Width="200" HorizontalAlignment="Left">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Левая панель навигации -->
+        <StackPanel Grid.Column="0" Background="White" 
+                Margin="10" 
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch">
+            <Button x:Name="EditDataButton" Content="Изменение своих данных" 
+              Height="40" Click="EditDataButton_Click"
+              Style="{StaticResource ModernButtonStyle}" />
+            <Button x:Name="ScheduleButton" Content="Расписание" 
+              Height="40" Click="ScheduleButton_Click"
+              Style="{StaticResource ModernButtonStyle}" />
+            <Button x:Name="RequestsButton" Content="Заявки" 
+              Height="40" Click="RequestsButton_Click"
+              Style="{StaticResource ModernButtonStyle}" />
+        </StackPanel>
+
+        <!-- Основное окно с контентом -->
+        <Grid Grid.Column="1" Margin="10">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Button Name="EditDataButton" Content="Изменение своих данных" Height="50" Click="EditDataButton_Click"/>
-            <!-- Кнопка для отображения расписания -->
-            <Button Name="ScheduleButton" Content="Расписание" Height="50" Grid.Row="1" Click="ScheduleButton_Click"/>
-            <Button Name="RequestsButton" Content="Заявки" Height="50" Grid.Row="2" Click="RequestsButton_Click"/>
-        </Grid>
+            <!-- Логин мастера (справа сверху) -->
+            <TextBlock Name="LoginTextBlock" 
+                 FontSize="16" FontWeight="SemiBold"
+                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                 Margin="0,10,10,0"
+                 Foreground="#333333"/>
 
-        <!-- Основное окно -->
-        <Grid Margin="200,0,0,0">
-            <!-- Логин мастера справа сверху -->
-            <TextBlock Name="LoginTextBlock" FontSize="16" FontWeight="Bold"
-                       HorizontalAlignment="Right" VerticalAlignment="Top"
-                       Margin="0,10,10,0" />
+            <!-- Контейнер для панелей (только одна отображается в каждый момент времени) -->
+            <Grid Grid.Row="1">
+                <!-- Панель редактирования данных -->
+                <Grid x:Name="EditPanel" Visibility="Collapsed">
+                    <Border Background="White" Padding="20" CornerRadius="10" 
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Effect="{StaticResource DropShadowEffect}">
+                        <StackPanel>
+                            <TextBlock Text="FIO:" Margin="0,0,0,5" FontWeight="Bold"/>
+                            <TextBox x:Name="FIOTextBox" Width="250" Margin="0,0,0,10"/>
+                            <TextBlock Text="Description:" Margin="0,0,0,5" FontWeight="Bold"/>
+                            <TextBox x:Name="DescriptionTextBox" Width="250" Height="100" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                            <Button x:Name="SaveButton" Content="Сохранить" Width="100" 
+                      HorizontalAlignment="Right" Click="SaveButton_Click"
+                      Style="{StaticResource ModernButtonStyle}"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
-            <!-- Окно редактирования данных -->
-            <StackPanel Name="EditPanel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="FIO:"/>
-                <TextBox Name="FIOTextBox" Width="200"/>
-                <TextBlock Text="Description:"/>
-                <TextBox Name="DescriptionTextBox" Width="200" Height="100"/>
-                <Button Name="SaveButton" Content="Сохранить" Click="SaveButton_Click" Margin="0,10,0,0"/>
-            </StackPanel>
+                <!-- Панель для загрузки заявок -->
+                <Grid x:Name="RequestsPanel" Visibility="Collapsed">
+                    <Border Background="White" Padding="20" CornerRadius="10" 
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Effect="{StaticResource DropShadowEffect}">
+                        <StackPanel>
+                            <Button Content="Загрузить заявки" 
+                      Click="RequestsButton_Click" Width="200" Margin="0,0,0,10"
+                      Style="{StaticResource ModernButtonStyle}"/>
+                            <ListBox x:Name="RequestsListBox" SelectionChanged="RequestsListBox_SelectionChanged"
+                       DisplayMemberPath="Service" Height="200"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
-            <!-- Панель для загрузки заявок -->
-            <StackPanel x:Name="RequestsPanel" Visibility="Collapsed" Margin="10">
-                <Button Content="Загрузить заявки" Click="RequestsButton_Click" Width="200" Margin="10"/>
-                <ListBox x:Name="RequestsListBox" SelectionChanged="RequestsListBox_SelectionChanged"
-                         DisplayMemberPath="Service" Height="200" Margin="10"/>
-            </StackPanel>
+                <!-- Панель подтверждения заявки -->
+                <Grid x:Name="ApprovalPanel" Visibility="Collapsed">
+                    <Border Background="White" Padding="20" CornerRadius="10" 
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Effect="{StaticResource DropShadowEffect}">
+                        <StackPanel>
+                            <TextBlock Text="Детали заявки:" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <TextBlock x:Name="ClientNameText" Margin="0,0,0,5"/>
+                            <TextBlock x:Name="ServiceText" Margin="0,0,0,5"/>
+                            <TextBlock x:Name="BookingTimeText" Margin="0,0,0,5"/>
+                            <TextBlock Text="Введите цену:" Margin="10,5,0,5" FontWeight="Bold"/>
+                            <TextBox x:Name="PriceTextBox" Margin="0,0,0,10" Width="150"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Подтвердить" Click="ConfirmButton_Click" Margin="0,0,10,0"
+                        Style="{StaticResource ModernButtonStyle}"/>
+                                <Button Content="Отклонить" Click="RejectButton_Click" Background="#E57373"
+                        Style="{StaticResource ModernButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
-            <!-- Панель подтверждения заявки -->
-            <StackPanel x:Name="ApprovalPanel" Visibility="Collapsed" Margin="10">
-                <TextBlock Text="Детали заявки:" FontWeight="Bold"/>
-                <TextBlock x:Name="ClientNameText"/>
-                <TextBlock x:Name="ServiceText"/>
-                <TextBlock x:Name="BookingTimeText"/>
-                <TextBlock Text="Введите цену:" Margin="0,5,0,5"/>
-                <TextBox x:Name="PriceTextBox" Margin="0,5,0,5"/>
-                <Button Content="Подтвердить" Click="ConfirmButton_Click"/>
-                <Button Content="Отклонить" Click="RejectButton_Click" Background="Red"/>
-            </StackPanel>
-
-            <!-- Новая панель для отображения расписания -->
-            <StackPanel x:Name="SchedulePanel" Visibility="Collapsed" Margin="10">
-                <TextBlock Text="Ваше расписание:" FontWeight="Bold" Margin="0,0,0,10"/>
-                <ListBox x:Name="ScheduleListBox" Height="200" Margin="10"/>
-            </StackPanel>
+                <!-- Панель отображения расписания -->
+                <Grid x:Name="SchedulePanel" Visibility="Collapsed">
+                    <Border Background="White" Padding="20" CornerRadius="10" 
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Effect="{StaticResource DropShadowEffect}">
+                        <StackPanel>
+                            <TextBlock Text="Ваше расписание:" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <ListBox x:Name="ScheduleListBox" Height="200"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

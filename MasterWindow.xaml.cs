@@ -88,7 +88,8 @@ namespace WpfApp2
 
         private void EditDataButton_Click(object sender, RoutedEventArgs e)
         {
-            EditPanel.Visibility = Visibility.Visible; // Показываем окно редактирования
+            HideAllPanels(); // Скрываем все панели
+            EditPanel.Visibility = Visibility.Visible; // Показываем только панель редактирования
         }
 
         private async void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -118,6 +119,8 @@ namespace WpfApp2
         {
             try
             {
+                HideAllPanels(); // Скрываем все панели перед загрузкой заявок
+
                 if (_connection.State == HubConnectionState.Disconnected)
                 {
                     await _connection.StartAsync();
@@ -190,10 +193,20 @@ namespace WpfApp2
             }
         }
 
+        private void HideAllPanels()
+        {
+            EditPanel.Visibility = Visibility.Collapsed;
+            RequestsPanel.Visibility = Visibility.Collapsed;
+            ApprovalPanel.Visibility = Visibility.Collapsed;
+            SchedulePanel.Visibility = Visibility.Collapsed;
+        }
+
         private async void ScheduleButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                HideAllPanels(); // Скрываем все панели перед загрузкой расписания
+
                 if (_connection.State == HubConnectionState.Disconnected)
                 {
                     await _connection.StartAsync();
