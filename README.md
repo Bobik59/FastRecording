@@ -1,6 +1,5 @@
-```mermaid
 graph TD
-    subgraph Сервер (ASP.NET Core)
+    subgraph Server_ASP_NET_Core [Сервер (ASP.NET Core)]
         A[Hub: BookingHub] --> B[Методы Hub]
         B --> C[OnConnectedAsync()]
         B --> D[OnDisconnectedAsync()]
@@ -11,7 +10,7 @@ graph TD
         G --> I[Группа клиентов]
     end
 
-    subgraph Клиенты
+    subgraph Clients [Клиенты]
         J[Клиент (Web)] --> K[Подключение к хабу]
         L[Мастер (Web/Mobile)] --> K
         K --> M[Используемые транспорты]
@@ -19,4 +18,3 @@ graph TD
         M --> O[Server-Sent Events]
         M --> P[Long Polling]
     end
-```
